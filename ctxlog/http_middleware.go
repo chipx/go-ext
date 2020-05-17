@@ -1,15 +1,15 @@
-package http_middleware
+package ctxlog
 
 import (
-	"github.com/chipx/go-ext/ctxlog"
 	"github.com/gofrs/uuid"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
-func UidMiddleware() func(next http.Handler) http.Handler {
+func HttpRequestLogMiddleware() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			startRequest := time.Now()
@@ -22,13 +22,16 @@ func UidMiddleware() func(next http.Handler) http.Handler {
 				uuidStr = strconv.Itoa(int(time.Now().UnixNano()))
 			}
 
-			ctx := ctxlog.To(r.Context(), log.Fields{"uid": uuidStr})
+			ctx := To(r.Context(), log.Fields{
+				"request-id": uuidStr,
+				"remote-ip":  r.RemoteAddr[:strings.Index(r.RemoteAddr, ":")],
+			})
 
 			// and call the next with our new context
 			r = r.WithContext(ctx)
 			next.ServeHTTP(w, r)
 
-			ctxlog.For(ctx).Debugf("Request executed at %s", time.Since(startRequest))
+			For(ctx).Debugf("Request executed at %s", time.Since(startRequest))
 		})
 	}
 }
