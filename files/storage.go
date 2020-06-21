@@ -1,4 +1,4 @@
-package storage
+package files
 
 import (
 	"fmt"
@@ -16,17 +16,36 @@ type Storage interface {
 	Read(filePath string) (*os.File, error)
 }
 
-func NewHostStorage(basePath string) *hostStorage {
-	return &hostStorage{
+func NewHostStorage(basePath string, baseUrl string) (*hostStorage, error) {
+	storage := &hostStorage{
 		basePath: strings.TrimRight(basePath, "/"),
+		baseUrl:  strings.TrimRight(baseUrl, "/"),
 	}
+
+	if err := storage.initBasePath(); err != nil {
+		return nil, err
+	}
+
+	return storage, nil
 }
 
 type hostStorage struct {
 	basePath          string
+	baseUrl           string
 	ErrorOnFileExists bool
 	FileNameEncoder   func(string) string
 	FsPerm            os.FileMode
+}
+
+func (m hostStorage) initBasePath() error {
+	if _, err := os.Stat(m.basePath); !os.IsNotExist(err) {
+		return nil
+	}
+	if err := os.MkdirAll(m.basePath, m.FsPerm); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (m hostStorage) prepareFilePath(filePath string) (string, error) {
@@ -64,6 +83,26 @@ func (m hostStorage) prepareFilePath(filePath string) (string, error) {
 	}
 
 	return uploadPath, nil
+}
+
+func (m hostStorage) ForSubFolder(path string) (*hostStorage, error) {
+	newStorage := &hostStorage{
+		basePath:          fmt.Sprintf("%s/%s", m.basePath, strings.TrimLeft(path, "/")),
+		baseUrl:           fmt.Sprintf("%s/%s", m.baseUrl, strings.TrimLeft(path, "/")),
+		ErrorOnFileExists: m.ErrorOnFileExists,
+		FileNameEncoder:   m.FileNameEncoder,
+		FsPerm:            m.FsPerm,
+	}
+
+	if err := newStorage.initBasePath(); err != nil {
+		return nil, err
+	}
+
+	return newStorage, nil
+}
+
+func (m hostStorage) BuildUrl(filePath string) string {
+	return fmt.Sprintf("%s/%s", m.baseUrl, strings.TrimLeft(filePath, "/"))
 }
 
 func (m hostStorage) Upload(filePath string, dataReader io.Reader) (string, error) {

@@ -1,4 +1,4 @@
-package storage
+package files
 
 import (
 	"github.com/sirupsen/logrus"
@@ -7,22 +7,22 @@ import (
 	"strings"
 )
 
-func NewHttpHandler(storage Storage, baseUrl string, accessCallback func(string, *http.Request) bool) *httpHandler {
-	return &httpHandler{
+func NewStorageHttpHandler(storage Storage, baseUrl string, accessCallback func(string, *http.Request) bool) *storageHttpHandler {
+	return &storageHttpHandler{
 		storage:        storage,
 		baseUrl:        baseUrl,
 		accessCallback: accessCallback,
 	}
 }
 
-type httpHandler struct {
+type storageHttpHandler struct {
 	storage        Storage
 	accessCallback func(string, *http.Request) bool
 	baseUrl        string
 	Logger         logrus.FieldLogger
 }
 
-func (h *httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *storageHttpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	filePath := strings.TrimLeft(r.URL.Path, h.baseUrl)
 	if h.accessCallback != nil && !h.accessCallback(filePath, r) {
 		w.WriteHeader(403)
@@ -46,7 +46,7 @@ func (h *httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	http.ServeContent(w, r, path.Base(filePath), fInfo.ModTime(), file)
 }
 
-func (h *httpHandler) logError(message string, args ...interface{}) {
+func (h *storageHttpHandler) logError(message string, args ...interface{}) {
 	if h.Logger == nil {
 		return
 	}

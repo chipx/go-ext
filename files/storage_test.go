@@ -1,4 +1,4 @@
-package storage
+package files
 
 import (
 	"bytes"
@@ -145,4 +145,18 @@ func TestManger_Read(t *testing.T) {
 		panic(rErr)
 	}
 	require.Equal(t, "Test", string(dataFromManager))
+}
+
+func TestManger_ForSubFolder(t *testing.T) {
+	setUp()
+	manager := &hostStorage{
+		basePath: basePath,
+		baseUrl:  "http://fs.local/",
+		FsPerm:   os.ModePerm,
+	}
+
+	newManager, err := manager.ForSubFolder("test")
+	require.Nil(t, err)
+	require.Equal(t, fmt.Sprintf("%s/test", manager.basePath), newManager.basePath)
+	require.Equal(t, fmt.Sprintf("%s/test", manager.baseUrl), newManager.baseUrl)
 }
