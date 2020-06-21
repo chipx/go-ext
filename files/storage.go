@@ -16,8 +16,8 @@ type Storage interface {
 	Read(filePath string) (*os.File, error)
 }
 
-func NewHostStorage(basePath string, baseUrl string) (*hostStorage, error) {
-	storage := &hostStorage{
+func NewHostStorage(basePath string, baseUrl string) (*HostStorage, error) {
+	storage := &HostStorage{
 		basePath: strings.TrimRight(basePath, "/"),
 		baseUrl:  strings.TrimRight(baseUrl, "/"),
 	}
@@ -29,7 +29,7 @@ func NewHostStorage(basePath string, baseUrl string) (*hostStorage, error) {
 	return storage, nil
 }
 
-type hostStorage struct {
+type HostStorage struct {
 	basePath          string
 	baseUrl           string
 	ErrorOnFileExists bool
@@ -37,7 +37,7 @@ type hostStorage struct {
 	FsPerm            os.FileMode
 }
 
-func (m hostStorage) initBasePath() error {
+func (m HostStorage) initBasePath() error {
 	if _, err := os.Stat(m.basePath); !os.IsNotExist(err) {
 		return nil
 	}
@@ -48,7 +48,7 @@ func (m hostStorage) initBasePath() error {
 	return nil
 }
 
-func (m hostStorage) prepareFilePath(filePath string) (string, error) {
+func (m HostStorage) prepareFilePath(filePath string) (string, error) {
 	dirPath, fileName := path.Split(filePath)
 	dirPath = strings.Trim(dirPath, "/")
 
@@ -85,8 +85,8 @@ func (m hostStorage) prepareFilePath(filePath string) (string, error) {
 	return uploadPath, nil
 }
 
-func (m hostStorage) ForSubFolder(path string) (*hostStorage, error) {
-	newStorage := &hostStorage{
+func (m HostStorage) ForSubFolder(path string) (*HostStorage, error) {
+	newStorage := &HostStorage{
 		basePath:          fmt.Sprintf("%s/%s", m.basePath, strings.TrimLeft(path, "/")),
 		baseUrl:           fmt.Sprintf("%s/%s", m.baseUrl, strings.TrimLeft(path, "/")),
 		ErrorOnFileExists: m.ErrorOnFileExists,
@@ -101,11 +101,11 @@ func (m hostStorage) ForSubFolder(path string) (*hostStorage, error) {
 	return newStorage, nil
 }
 
-func (m hostStorage) BuildUrl(filePath string) string {
+func (m HostStorage) BuildUrl(filePath string) string {
 	return fmt.Sprintf("%s/%s", m.baseUrl, strings.TrimLeft(filePath, "/"))
 }
 
-func (m hostStorage) Upload(filePath string, dataReader io.Reader) (string, error) {
+func (m HostStorage) Upload(filePath string, dataReader io.Reader) (string, error) {
 	uploadPath, err := m.prepareFilePath(filePath)
 	if err != nil {
 		return "", err
@@ -132,7 +132,7 @@ func (m hostStorage) Upload(filePath string, dataReader io.Reader) (string, erro
 	return uploadPath, out.Close()
 }
 
-func (m hostStorage) Read(filePath string) (*os.File, error) {
+func (m HostStorage) Read(filePath string) (*os.File, error) {
 	realFilePath := fmt.Sprintf("%s/%s", m.basePath, strings.TrimLeft(filePath, "/"))
 	if _, err := os.Stat(realFilePath); os.IsNotExist(err) {
 		return nil, fmt.Errorf("File %s not exists: %s ", filePath, err)

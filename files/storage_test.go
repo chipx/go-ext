@@ -24,7 +24,7 @@ func setUp() {
 
 func TestHostStorage_PrepareFileName(t *testing.T) {
 	setUp()
-	manager := &hostStorage{
+	manager := &HostStorage{
 		basePath: basePath,
 	}
 	fileName := fmt.Sprintf("%s/h11/sdasd/1.jpg", basePath)
@@ -36,7 +36,7 @@ func TestHostStorage_PrepareFileName(t *testing.T) {
 
 func TestHostStorage_PrepareFileName_ErrOnAlreadyExists(t *testing.T) {
 	setUp()
-	manager := &hostStorage{
+	manager := &HostStorage{
 		basePath:          basePath,
 		ErrorOnFileExists: true,
 	}
@@ -56,7 +56,7 @@ func TestHostStorage_PrepareFileName_ErrOnAlreadyExists(t *testing.T) {
 
 func TestHostStorage_PrepareFileName_AddSuffixOnAlreadyExists(t *testing.T) {
 	setUp()
-	manager := &hostStorage{
+	manager := &HostStorage{
 		basePath:          basePath,
 		ErrorOnFileExists: false,
 	}
@@ -76,7 +76,7 @@ func TestHostStorage_PrepareFileName_AddSuffixOnAlreadyExists(t *testing.T) {
 
 func TestHostStorage_PrepareFileName_UseEncoder(t *testing.T) {
 	setUp()
-	manager := &hostStorage{
+	manager := &HostStorage{
 		basePath: basePath,
 		FileNameEncoder: func(s string) string {
 			require.Equal(t, "1", s)
@@ -92,7 +92,7 @@ func TestHostStorage_PrepareFileName_UseEncoder(t *testing.T) {
 
 func TestHostStorage_Upload(t *testing.T) {
 	setUp()
-	manager := &hostStorage{
+	manager := &HostStorage{
 		basePath: basePath,
 		FsPerm:   os.ModePerm,
 	}
@@ -117,7 +117,7 @@ func TestHostStorage_Upload(t *testing.T) {
 
 func TestManger_Read(t *testing.T) {
 	setUp()
-	manager := &hostStorage{
+	manager := &HostStorage{
 		basePath: basePath,
 		FsPerm:   os.ModePerm,
 	}
@@ -149,7 +149,7 @@ func TestManger_Read(t *testing.T) {
 
 func TestManger_ForSubFolder(t *testing.T) {
 	setUp()
-	manager := &hostStorage{
+	manager := &HostStorage{
 		basePath: basePath,
 		baseUrl:  "http://fs.local/",
 		FsPerm:   os.ModePerm,
