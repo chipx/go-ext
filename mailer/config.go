@@ -1,4 +1,4 @@
-package mail
+package mailer
 
 type ChannelConfig struct {
 	Host     string
