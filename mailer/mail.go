@@ -17,7 +17,7 @@ var channels map[string]*mail.SMTPServer
 
 var (
 	_, b, _, _ = runtime.Caller(0)
-	basepath   = filepath.Dir(b)
+	basepath   = filepath.Dir(b) + "/template"
 )
 
 func SetTemplatePath(path string) {
@@ -78,7 +78,7 @@ func SendMail(channelName string, email *mail.Email) error {
 }
 
 func CreateEmail(templateName string, data interface{}) (*mail.Email, error) {
-	templateFileName := fmt.Sprintf("%s/template/%s.html", basepath, templateName)
+	templateFileName := fmt.Sprintf("%s/%s.html", basepath, templateName)
 	if _, err := os.Stat(templateFileName); os.IsNotExist(err) {
 		return nil, fmt.Errorf("Template %s not found in %s ", templateName, templateFileName)
 	}
