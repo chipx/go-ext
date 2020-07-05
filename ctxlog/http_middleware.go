@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func HttpRequestLogMiddleware() func(next http.Handler) http.Handler {
+func HttpRequestLogMiddleware(requestIdToResponse bool) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			startRequest := time.Now()
@@ -25,7 +25,12 @@ func HttpRequestLogMiddleware() func(next http.Handler) http.Handler {
 			ctx := To(r.Context(), log.Fields{
 				"request-id": uuidStr,
 				"remote-ip":  r.RemoteAddr[:strings.Index(r.RemoteAddr, ":")],
+				"path":       r.URL.Path,
 			})
+
+			if requestIdToResponse {
+				w.Header().Add("Request-Id", uuidStr)
+			}
 
 			// and call the next with our new context
 			r = r.WithContext(ctx)
