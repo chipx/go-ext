@@ -24,7 +24,7 @@ func HttpRequestLogMiddleware(requestIdToResponse bool) func(next http.Handler) 
 
 			ctx := To(r.Context(), log.Fields{
 				"request-id": uuidStr,
-				"remote-ip":  r.RemoteAddr[:strings.Index(r.RemoteAddr, ":")],
+				"remote-ip":  strings.Split(r.RemoteAddr, ":")[0],
 				"path":       r.URL.Path,
 			})
 
