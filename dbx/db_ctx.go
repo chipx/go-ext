@@ -5,7 +5,37 @@ import (
 	"database/sql"
 	"github.com/chipx/go-ext/ctxlog"
 	"github.com/jmoiron/sqlx"
+	log "github.com/sirupsen/logrus"
+	"net/http"
 )
+
+const dbExecuterContextKey = "db_executer"
+
+func ToContext(ctx context.Context, stmt Executer) context.Context {
+	return context.WithValue(ctx, dbExecuterContextKey, stmt)
+}
+
+func ForContext(ctx context.Context) Executer {
+	ex, ok := ctx.Value(dbExecuterContextKey).(Executer)
+	if !ok || ex == nil {
+		log.Error("Not found Executer in context")
+		return nil
+	}
+
+	return ex
+}
+
+func DbCtxMiddleware(stmt *sqlx.DB) func(http.Handler) http.Handler {
+	log.Debug("Added context db middleware")
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := ToContext(r.Context(), stmt)
+
+			r = r.WithContext(ctx)
+			next.ServeHTTP(w, r)
+		})
+	}
+}
 
 func GetDbCtx(ctx context.Context) *DbCtx {
 	db, isExecuterContext := ForContext(ctx).(ExecuterContext)
@@ -15,13 +45,6 @@ func GetDbCtx(ctx context.Context) *DbCtx {
 	}
 	return &DbCtx{
 		db:  db,
-		ctx: ctx,
-	}
-}
-
-func NewDbCtx(ctx context.Context, stmt ExecuterContext) *DbCtx {
-	return &DbCtx{
-		db:  stmt,
 		ctx: ctx,
 	}
 }
