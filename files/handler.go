@@ -1,7 +1,7 @@
 package files
 
 import (
-	"github.com/sirupsen/logrus"
+	"github.com/rs/zerolog"
 	"net/http"
 	"path"
 	"strings"
@@ -19,7 +19,7 @@ type storageHttpHandler struct {
 	storage        Storage
 	accessCallback func(string, *http.Request) bool
 	baseUrl        string
-	Logger         logrus.FieldLogger
+	Logger         *zerolog.Logger
 }
 
 func (h *storageHttpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -51,5 +51,5 @@ func (h *storageHttpHandler) logError(message string, args ...interface{}) {
 		return
 	}
 
-	h.Logger.Errorf(message, args...)
+	h.Logger.Error().Msgf(message, args...)
 }

@@ -3,7 +3,7 @@ package mailer
 import (
 	"bytes"
 	"fmt"
-	log "github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 	"github.com/xhit/go-simple-mail/v2"
 	"html/template"
 	"os"
@@ -30,7 +30,7 @@ func InitMailChannel(name string, config ChannelConfig) {
 	}
 
 	if _, ok := channels[name]; ok {
-		log.Errorf("Channel with name %s already initialized")
+		log.Error().Msgf("Channel with name %s already initialized", name)
 		return
 	}
 
@@ -64,7 +64,7 @@ func SendMail(channelName string, email *mail.Email) error {
 
 	smtpClient, err := channel.Connect()
 	if err != nil {
-		log.WithError(err).Errorf("Fail connect to SMTP server")
+		log.Error().Err(err).Msgf("Fail connect to SMTP server by channel %s", channelName)
 		return err
 	}
 

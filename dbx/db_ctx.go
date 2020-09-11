@@ -3,9 +3,8 @@ package dbx
 import (
 	"context"
 	"database/sql"
-	"github.com/chipx/go-ext/ctxlog"
 	"github.com/jmoiron/sqlx"
-	log "github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 	"net/http"
 )
 
@@ -18,7 +17,7 @@ func ToContext(ctx context.Context, stmt Executer) context.Context {
 func ForContext(ctx context.Context) Executer {
 	ex, ok := ctx.Value(dbExecuterContextKey).(Executer)
 	if !ok || ex == nil {
-		log.Error("Not found Executer in context")
+		log.Error().Msg("Not found Executer in context")
 		return nil
 	}
 
@@ -26,7 +25,7 @@ func ForContext(ctx context.Context) Executer {
 }
 
 func DbCtxMiddleware(stmt *sqlx.DB) func(http.Handler) http.Handler {
-	log.Debug("Added context db middleware")
+	log.Debug().Msg("Added context db middleware")
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := ToContext(r.Context(), stmt)
@@ -40,7 +39,7 @@ func DbCtxMiddleware(stmt *sqlx.DB) func(http.Handler) http.Handler {
 func GetDbCtx(ctx context.Context) *DbCtx {
 	db, isExecuterContext := ForContext(ctx).(ExecuterContext)
 	if !isExecuterContext {
-		ctxlog.For(ctx).Error("Db executer from context not implemented ExecuterContext interface.")
+		log.Ctx(ctx).Error().Msg("Db executer from context not implemented ExecuterContext interface.")
 		return nil
 	}
 	return &DbCtx{
